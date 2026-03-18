@@ -1,36 +1,38 @@
 import java.util.*;
 
-class Bucket {
-    int tokens = 5;
-    long last = System.currentTimeMillis();
-
-    boolean allow() {
-        long now = System.currentTimeMillis();
-        if (now - last > 1000) {
-            tokens = 5;
-            last = now;
-        }
-
-        if (tokens > 0) {
-            tokens--;
-            return true;
-        }
-        return false;
-    }
+class Node {
+    Map<Character, Node> child = new HashMap<>();
+    Map<String, Integer> freq = new HashMap<>();
 }
 
 public class problemstatement {
 
-    static Map<String, Bucket> map = new HashMap<>();
+    static Node root = new Node();
 
-    static boolean check(String client) {
-        map.putIfAbsent(client, new Bucket());
-        return map.get(client).allow();
+    static void insert(String word) {
+        Node cur = root;
+        for (char c : word.toCharArray()) {
+            cur.child.putIfAbsent(c, new Node());
+            cur = cur.child.get(c);
+            cur.freq.put(word, cur.freq.getOrDefault(word, 0) + 1);
+        }
+    }
+
+    static void search(String prefix) {
+        Node cur = root;
+        for (char c : prefix.toCharArray()) {
+            if (!cur.child.containsKey(c)) return;
+            cur = cur.child.get(c);
+        }
+
+        System.out.println(cur.freq);
     }
 
     public static void main(String[] args) {
-        for (int i = 0; i < 7; i++) {
-            System.out.println(check("user1"));
-        }
+        insert("java");
+        insert("javascript");
+        insert("javafx");
+
+        search("jav");
     }
 }
