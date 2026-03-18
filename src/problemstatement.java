@@ -1,46 +1,44 @@
 import java.util.*;
 
-class DNSEntry {
-    String ip;
-    long expiry;
-
-    DNSEntry(String ip, int ttl) {
-        this.ip = ip;
-        this.expiry = System.currentTimeMillis() + ttl * 1000;
-    }
-
-    boolean isExpired() {
-        return System.currentTimeMillis() > expiry;
-    }
-}
-
 public class problemstatement {
 
-    static Map<String, DNSEntry> cache = new HashMap<>();
-    static int hits = 0, misses = 0;
+    static Map<String, Set<String>> index = new HashMap<>();
 
-    static String resolve(String domain) {
-        DNSEntry entry = cache.get(domain);
+    static List<String> ngrams(String text, int n) {
+        String[] words = text.split(" ");
+        List<String> list = new ArrayList<>();
 
-        if (entry != null && !entry.isExpired()) {
-            hits++;
-            return "HIT → " + entry.ip;
+        for (int i = 0; i <= words.length - n; i++) {
+            list.add(String.join(" ", Arrays.copyOfRange(words, i, i + n)));
         }
-
-        misses++;
-        String ip = "192.168.1." + new Random().nextInt(100);
-        cache.put(domain, new DNSEntry(ip, 3));
-        return "MISS → " + ip;
+        return list;
     }
 
-    public static void main(String[] args) throws Exception {
-        System.out.println(resolve("google.com"));
-        System.out.println(resolve("google.com"));
+    static void addDoc(String id, String text) {
+        for (String g : ngrams(text, 3)) {
+            index.putIfAbsent(g, new HashSet<>());
+            index.get(g).add(id);
+        }
+    }
 
-        Thread.sleep(4000); // expire
+    static void check(String text) {
+        Map<String, Integer> count = new HashMap<>();
 
-        System.out.println(resolve("google.com"));
+        for (String g : ngrams(text, 3)) {
+            if (index.containsKey(g)) {
+                for (String doc : index.get(g)) {
+                    count.put(doc, count.getOrDefault(doc, 0) + 1);
+                }
+            }
+        }
 
-        System.out.println("Hit Rate: " + (hits * 100.0 / (hits + misses)) + "%");
+        System.out.println("Similarity: " + count);
+    }
+
+    public static void main(String[] args) {
+        addDoc("doc1", "this is a sample document for testing plagiarism");
+        addDoc("doc2", "this document is used for plagiarism detection testing");
+
+        check("this is a plagiarism test document");
     }
 }
