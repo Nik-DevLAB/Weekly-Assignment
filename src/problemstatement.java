@@ -2,43 +2,26 @@ import java.util.*;
 
 public class problemstatement {
 
-    static Map<String, Set<String>> index = new HashMap<>();
+    static Map<String, Integer> views = new HashMap<>();
+    static Map<String, Set<String>> users = new HashMap<>();
+    static Map<String, Integer> sources = new HashMap<>();
 
-    static List<String> ngrams(String text, int n) {
-        String[] words = text.split(" ");
-        List<String> list = new ArrayList<>();
+    static void process(String url, String user, String source) {
+        views.put(url, views.getOrDefault(url, 0) + 1);
 
-        for (int i = 0; i <= words.length - n; i++) {
-            list.add(String.join(" ", Arrays.copyOfRange(words, i, i + n)));
-        }
-        return list;
-    }
+        users.putIfAbsent(url, new HashSet<>());
+        users.get(url).add(user);
 
-    static void addDoc(String id, String text) {
-        for (String g : ngrams(text, 3)) {
-            index.putIfAbsent(g, new HashSet<>());
-            index.get(g).add(id);
-        }
-    }
-
-    static void check(String text) {
-        Map<String, Integer> count = new HashMap<>();
-
-        for (String g : ngrams(text, 3)) {
-            if (index.containsKey(g)) {
-                for (String doc : index.get(g)) {
-                    count.put(doc, count.getOrDefault(doc, 0) + 1);
-                }
-            }
-        }
-
-        System.out.println("Similarity: " + count);
+        sources.put(source, sources.getOrDefault(source, 0) + 1);
     }
 
     public static void main(String[] args) {
-        addDoc("doc1", "this is a sample document for testing plagiarism");
-        addDoc("doc2", "this document is used for plagiarism detection testing");
+        process("/news", "u1", "google");
+        process("/news", "u2", "facebook");
+        process("/sports", "u1", "google");
 
-        check("this is a plagiarism test document");
+        System.out.println("Views: " + views);
+        System.out.println("Unique Users: " + users);
+        System.out.println("Sources: " + sources);
     }
 }
