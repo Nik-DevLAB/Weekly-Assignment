@@ -1,38 +1,25 @@
-import java.util.*;
-
-class Node {
-    Map<Character, Node> child = new HashMap<>();
-    Map<String, Integer> freq = new HashMap<>();
-}
-
 public class problemstatement {
 
-    static Node root = new Node();
+    static String[] table = new String[10];
 
-    static void insert(String word) {
-        Node cur = root;
-        for (char c : word.toCharArray()) {
-            cur.child.putIfAbsent(c, new Node());
-            cur = cur.child.get(c);
-            cur.freq.put(word, cur.freq.getOrDefault(word, 0) + 1);
-        }
+    static int hash(String plate) {
+        return Math.abs(plate.hashCode()) % table.length;
     }
 
-    static void search(String prefix) {
-        Node cur = root;
-        for (char c : prefix.toCharArray()) {
-            if (!cur.child.containsKey(c)) return;
-            cur = cur.child.get(c);
+    static void park(String plate) {
+        int i = hash(plate);
+
+        while (table[i] != null) {
+            i = (i + 1) % table.length;
         }
 
-        System.out.println(cur.freq);
+        table[i] = plate;
+        System.out.println("Parked at " + i);
     }
 
     public static void main(String[] args) {
-        insert("java");
-        insert("javascript");
-        insert("javafx");
-
-        search("jav");
+        park("ABC123");
+        park("ABC124");
+        park("XYZ999");
     }
 }
