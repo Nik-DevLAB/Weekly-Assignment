@@ -2,62 +2,43 @@ import java.util.*;
 
 class problemstatement {
 
-    private Map<String, Integer> userMap = new HashMap<>();
-    private Map<String, Integer> attemptCount = new HashMap<>();
+    private Map<String, Integer> stock = new HashMap<>();
+    private Map<String, Queue<Integer>> waitingList = new HashMap<>();
 
-    // Check availability
-    public boolean checkAvailability(String username) {
-        attemptCount.put(username, attemptCount.getOrDefault(username, 0) + 1);
-        return !userMap.containsKey(username);
+    public problemstatement() {
+        stock.put("IPHONE15_256GB", 100);
+        waitingList.put("IPHONE15_256GB", new LinkedList<>());
     }
 
-    // Register user
-    public void register(String username, int userId) {
-        if (!checkAvailability(username)) {
-            System.out.println("Username already taken!");
-            return;
-        }
-        userMap.put(username, userId);
-        System.out.println("Registered successfully!");
+    // Check stock
+    public int checkStock(String productId) {
+        return stock.getOrDefault(productId, 0);
     }
 
-    // Suggest alternatives
-    public List<String> suggestAlternatives(String username) {
-        List<String> suggestions = new ArrayList<>();
+    // Thread-safe purchase
+    public synchronized void purchaseItem(String productId, int userId) {
 
-        for (int i = 1; i <= 3; i++) {
-            suggestions.add(username + i);
+        int available = stock.getOrDefault(productId, 0);
+
+        if (available > 0) {
+            stock.put(productId, available - 1);
+            System.out.println("User " + userId +
+                    " SUCCESS. Remaining: " + (available - 1));
+        } else {
+            waitingList.get(productId).add(userId);
+            System.out.println("User " + userId +
+                    " added to waiting list. Position: " +
+                    waitingList.get(productId).size());
         }
-
-        suggestions.add(username.replace("_", "."));
-
-        return suggestions;
-    }
-
-    // Most attempted username
-    public String getMostAttempted() {
-        String maxUser = null;
-        int max = 0;
-
-        for (String user : attemptCount.keySet()) {
-            if (attemptCount.get(user) > max) {
-                max = attemptCount.get(user);
-                maxUser = user;
-            }
-        }
-
-        return maxUser + " (" + max + " attempts)";
     }
 
     public static void main(String[] args) {
-        problemstatement uc = new problemstatement();
 
-        uc.register("john_doe", 1);
+        problemstatement manager = new problemstatement();
 
-        System.out.println(uc.checkAvailability("john_doe")); // false
-        System.out.println(uc.checkAvailability("jane_smith")); // true
-
-        System.out.println(uc.suggestAlternatives("john_doe"));
-        System.out.println("Most attempted: " + uc.getMostAttempted());
+        // Simulate multiple users
+        for (int i = 1; i <= 105; i++) {
+            manager.purchaseItem("IPHONE15_256GB", i);
+        }
     }
 }
