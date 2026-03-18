@@ -1,44 +1,46 @@
 import java.util.*;
 
-class problemstatement {
+class DNSEntry {
+    String ip;
+    long expiry;
 
-    private Map<String, Integer> stock = new HashMap<>();
-    private Map<String, Queue<Integer>> waitingList = new HashMap<>();
-
-    public problemstatement() {
-        stock.put("IPHONE15_256GB", 100);
-        waitingList.put("IPHONE15_256GB", new LinkedList<>());
+    DNSEntry(String ip, int ttl) {
+        this.ip = ip;
+        this.expiry = System.currentTimeMillis() + ttl * 1000;
     }
 
-    // Check stock
-    public int checkStock(String productId) {
-        return stock.getOrDefault(productId, 0);
+    boolean isExpired() {
+        return System.currentTimeMillis() > expiry;
     }
+}
 
-    // Thread-safe purchase
-    public synchronized void purchaseItem(String productId, int userId) {
+public class problemstatement {
 
-        int available = stock.getOrDefault(productId, 0);
+    static Map<String, DNSEntry> cache = new HashMap<>();
+    static int hits = 0, misses = 0;
 
-        if (available > 0) {
-            stock.put(productId, available - 1);
-            System.out.println("User " + userId +
-                    " SUCCESS. Remaining: " + (available - 1));
-        } else {
-            waitingList.get(productId).add(userId);
-            System.out.println("User " + userId +
-                    " added to waiting list. Position: " +
-                    waitingList.get(productId).size());
+    static String resolve(String domain) {
+        DNSEntry entry = cache.get(domain);
+
+        if (entry != null && !entry.isExpired()) {
+            hits++;
+            return "HIT → " + entry.ip;
         }
+
+        misses++;
+        String ip = "192.168.1." + new Random().nextInt(100);
+        cache.put(domain, new DNSEntry(ip, 3));
+        return "MISS → " + ip;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        System.out.println(resolve("google.com"));
+        System.out.println(resolve("google.com"));
 
-        problemstatement manager = new problemstatement();
+        Thread.sleep(4000); // expire
 
-        // Simulate multiple users
-        for (int i = 1; i <= 105; i++) {
-            manager.purchaseItem("IPHONE15_256GB", i);
-        }
+        System.out.println(resolve("google.com"));
+
+        System.out.println("Hit Rate: " + (hits * 100.0 / (hits + misses)) + "%");
     }
 }
