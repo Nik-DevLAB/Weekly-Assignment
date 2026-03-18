@@ -1,23 +1,25 @@
-import java.util.*;
-
 public class problemstatement {
 
-    static void find(int[] arr, int target) {
-        Map<Integer, Integer> map = new HashMap<>();
+    static String[] table = new String[10];
 
-        for (int num : arr) {
-            int comp = target - num;
+    static int hash(String plate) {
+        return Math.abs(plate.hashCode()) % table.length;
+    }
 
-            if (map.containsKey(comp)) {
-                System.out.println(num + " + " + comp);
-            }
+    static void park(String plate) {
+        int i = hash(plate);
 
-            map.put(num, 1);
+        while (table[i] != null) {
+            i = (i + 1) % table.length;
         }
+
+        table[i] = plate;
+        System.out.println("Parked at " + i);
     }
 
     public static void main(String[] args) {
-        int[] arr = {500, 300, 200};
-        find(arr, 500);
+        park("ABC123");
+        park("ABC124");
+        park("XYZ999");
     }
 }
